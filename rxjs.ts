@@ -114,6 +114,31 @@ class Observable {
       return subscription;
     });
   }
+
+  filter(predication: (v: any) => boolean) {
+    return new Observable((observer) => {
+      const subscription = this.subscribe({
+        next(v) {
+          try {
+            const predicate = predication(v);
+            if (predicate) {
+              observer.next(v);
+            }
+          } catch (e) {
+            observer.error(e);
+          }
+        },
+        complete() {
+          observer.complete();
+        },
+        error(err) {
+          observer.error(err);
+        },
+      });
+
+      return subscription;
+    });
+  }
 }
 
 const obs = Observable.allNumbers();
