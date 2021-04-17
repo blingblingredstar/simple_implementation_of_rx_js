@@ -5,9 +5,19 @@ interface Observer {
 }
 
 class Observable {
-  _subscribe: (observer: Observer) => void;
+  _subscribe: (
+    observer: Observer
+  ) => {
+    unsubscribe(): void;
+  };
 
-  constructor(subscribe: (observer: Observer) => void) {
+  constructor(
+    subscribe: (
+      observer: Observer
+    ) => {
+      unsubscribe(): void;
+    }
+  ) {
     this._subscribe = subscribe;
   }
 
@@ -54,17 +64,12 @@ class Observable {
     dom: HTMLElement,
     eventName: K
   ) {
-    let _observer: null | Observer = null;
-
-    const handler = (e: HTMLElementEventMap[K]) => {
-      if (_observer === null) return;
-      _observer.next(e);
-    };
-
-    dom.addEventListener(eventName, handler);
-
     return new Observable((observer) => {
-      _observer = observer;
+      const handler = (e: HTMLElementEventMap[K]) => {
+        observer.next(e);
+      };
+
+      dom.addEventListener(eventName, handler);
 
       return {
         unsubscribe() {
@@ -83,6 +88,30 @@ class Observable {
           num = 0;
         },
       };
+    });
+  }
+
+  map(projection: (v: any) => any) {
+    return new Observable((observer) => {
+      const subscription = this.subscribe({
+        next(v) {
+          try {
+            const value = projection(v);
+            observer.next(value);
+          } catch (e) {
+            observer.error(e);
+            subscription.unsubscribe();
+          }
+        },
+        complete() {
+          observer.complete();
+        },
+        error(e) {
+          observer.error(e);
+        },
+      });
+
+      return subscription;
     });
   }
 }
