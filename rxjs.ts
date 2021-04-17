@@ -73,9 +73,45 @@ class Observable {
       };
     });
   }
+
+  static allNumbers() {
+    let num = 0;
+    return new Observable((observer) => {
+      observer.next(num++);
+      return {
+        unsubscribe() {
+          num = 0;
+        },
+      };
+    });
+  }
 }
 
-const obs = Observable.timeout(500);
+const obs = Observable.allNumbers();
+
+obs.subscribe({
+  next(v) {
+    console.log(v);
+  },
+  complete() {
+    console.log("complete");
+  },
+  error() {
+    console.log("error");
+  },
+});
+
+obs.subscribe({
+  next(v) {
+    console.log(v);
+  },
+  complete() {
+    console.log("complete");
+  },
+  error() {
+    console.log("error");
+  },
+});
 
 obs.subscribe({
   next(v) {
